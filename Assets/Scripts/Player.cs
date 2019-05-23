@@ -10,28 +10,20 @@ public class Player : MonoBehaviour
     [SerializeField] float timeDieDeelay = 0.5f;
     [SerializeField] Vector2 deathKick = new Vector2(10f, 10f);
 
-    ////JetPack
-    //[SerializeField] private float jetPackForce = 3f;
-    //[SerializeField] private float rotationSpeed = 3f;
-    //[SerializeField] private float normalizeRotationSpeed = 3f;
-    //[SerializeField] private Transform groundPosition;
-
     float moveInput;
-    float jetPackActivation;
+    public float jumpInput;
+    //float jetPackActivation;
 	bool isAlive = true;
     float gravityScaleAtStart;
-    ////Jetpack
-    //bool isJump = false;
-    //private float timer = 0;
+    //Extra Jump
+    private int extraJumps;
+    public int extraJumpValue = 1;
+
 
     Rigidbody2D myRigidbody;
     Animator myAnimator;
 	CapsuleCollider2D myBodyCollider;
 	BoxCollider2D myFeet;
-
-    //Jetpack
-    //private Collider2D[] isGrounded = new Collider2D[1];
-
 
     void Start(){
 		myRigidbody = GetComponent<Rigidbody2D>();
@@ -40,39 +32,22 @@ public class Player : MonoBehaviour
 		myFeet = GetComponent<BoxCollider2D>();
         gravityScaleAtStart = myRigidbody.gravityScale;
 
-	}
+        extraJumps = extraJumpValue;
+
+    }
 
 	void Update(){
 
         moveInput = Input.GetAxis("Horizontal");
-        jetPackActivation = Input.GetAxis("Jetpack");
-		if(!isAlive) {return;}
+        jumpInput = Input.GetAxis("Jump");
+        //jetPackActivation = Input.GetAxis("Jetpack");
+
+        if (!isAlive) {return;}
 		Run();
         Jump();
         FlipSprite();
 
     }
-
-    //private void FixedUpdate()
-    //{
-    //    isGrounded[0] = null;
-    //    //Physics2D.OverlapBoxNonAlloc(groundPosition.position, new Vector2(myFeet))
-
-    //    if (!isJump)
-    //    {
-    //        myRigidbody.velocity = new Vector2(moveInput * runSpeed, myRigidbody.velocity.y);
-    //    }else if (isJump)
-    //    {
-    //        Vector3 rotation = new Vector3(0, 0, -moveInput * rotationSpeed);
-
-    //        myRigidbody.freezeRotation = false;
-    //        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, Time.deltaTime * normalizeRotationSpeed);
-    //        myRigidbody.AddForce(transform.rotation * Vector2.up * jetPackForce);
-
-    //        //decrease fuel amount
-
-    //    }
-    //}
 
     void Run(){
         //Get the horizontal axis
@@ -89,13 +64,21 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        if (!myFeet.IsTouchingLayers(LayerMask.GetMask("Ground"))) { return;}
+        if (!myFeet.IsTouchingLayers(LayerMask.GetMask("Ground"))) 
+        {
+            extraJumps = extraJumpValue; 
+            //return;
+        }
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") && extraJumps > 0)
         {
             //Vector2 jumpVelocityToAdd = new Vector2(0f, jumpSpeed);
             //myRigidbody.velocity += jumpVelocityToAdd;
-            GetComponent < Rigidbody2D>().velocity = Vector2.up * jumpSpeed;
+            myRigidbody.velocity = Vector2.up * jumpSpeed;
+            extraJumps--;
+        }else if (Input.GetButtonDown("Jump") && extraJumps == 0 && myFeet.IsTouchingLayers(LayerMask.GetMask("Ground")))
+        {
+            myRigidbody.velocity = Vector2.up * jumpSpeed;
         }
 
     }
@@ -108,14 +91,6 @@ public class Player : MonoBehaviour
             transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
         }
     }
-
-    //private void Flight()
-    //{
-    //    if (!isJump)
-    //    {
-
-    //    }
-    //}
 
     //private void Die()
     //{
